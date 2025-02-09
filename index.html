@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Gestão de Vendas</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Cabeçalho -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Dashboard de Gestão de Vendas</h1>
+            <button id="menuToggle" onclick="toggleMenu()">☰</button>
+            <nav class="navigation" id="mainNav">
+                <button class="nav-button active" onclick="showTab('dashboard')">Dashboard</button>
+                <button class="nav-button" onclick="showTab('cadastros')">Cadastros</button>
+                <button class="nav-button" onclick="showTab('vendas')">Vendas</button>
+                <button class="nav-button" onclick="showTab('relatorios')">Relatórios</button>
+            </nav>
+        </div>
+
+        <!-- Abas -->
+        <div id="dashboard" class="tab-content active">
+            <div class="filters">
+                <select id="mesFiltro">
+                    <option value="">Selecione o mês</option>
+                    <option value="0">Janeiro</option>
+                    <option value="1">Fevereiro</option>
+                    <option value="2">Março</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Maio</option>
+                    <option value="5">Junho</option>
+                    <option value="6">Julho</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Setembro</option>
+                    <option value="9">Outubro</option>
+                    <option value="10">Novembro</option>
+                    <option value="11">Dezembro</option>
+                </select>
+                <select id="anoFiltro"></select>
+                <button onclick="atualizarDashboard()">Atualizar</button>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-title">Total de Vendas</span>
+                    <span class="stat-value" id="totalVendasDash">R$ 0,00</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-title">Comissões</span>
+                    <span class="stat-value" id="totalComissoesDash">R$ 0,00</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-title">Clientes Atendidos</span>
+                    <span class="stat-value" id="totalClientes">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-title">Ticket Médio</span>
+                    <span class="stat-value" id="ticketMedio">R$ 0,00</span>
+                </div>
+            </div>
+            <div class="grid">
+                <div class="card">
+                    <canvas id="vendasServicoChart"></canvas>
+                </div>
+                <div class="card">
+                    <canvas id="desempenhoVendedoresChart"></canvas>
+                </div>
+                <div class="card">
+                    <canvas id="vendasCategoriaChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="cadastros" class="tab-content">
+            <!-- Cadastro de Vendedor -->
+            <form id="vendedorForm" class="form-group">
+                <input type="text" id="nomeVendedor" placeholder="Nome do Vendedor" required />
+                <input type="email" id="emailVendedor" placeholder="Email" required />
+                <input type="tel" id="telefoneVendedor" placeholder="Telefone" oninput="formatarTelefone(this)" required />
+                <button type="submit">Cadastrar Vendedor</button>
+            </form>
+            <ul id="vendedoresList" class="list-group"></ul>
+
+            <!-- Cadastro de Serviço -->
+            <form id="servicoForm" class="form-group">
+                <input type="text" id="nomeServico" placeholder="Nome do Serviço" required />
+                <input type="text" id="categoriaServico" placeholder="Categoria" required />
+                <select id="tipoComissao">
+                    <option value="fixa">Fixa</option>
+                    <option value="porcentagem">Porcentagem</option>
+                </select>
+                <button type="submit">Cadastrar Serviço</button>
+            </form>
+            <ul id="servicosList" class="list-group"></ul>
+
+            <!-- Cadastro de Empresa Parceira -->
+            <form id="empresaForm" class="form-group">
+                <input type="text" id="nomeEmpresa" placeholder="Nome da Empresa" required />
+                <button type="submit">Cadastrar Empresa</button>
+            </form>
+            <ul id="empresasList" class="list-group"></ul>
+        </div>
+
+        <div id="vendas" class="tab-content">
+            <form id="vendaForm" class="form-group">
+                <select id="vendedorVenda"></select>
+                <select id="servicoVenda" onchange="atualizarTipoComissao()"></select>
+                <input type="date" id="dataVenda" required />
+                <input type="text" id="nomeCliente" placeholder="Nome do Cliente" required />
+                <select id="empresaParceira"></select>
+                <input type="text" id="valorVenda" placeholder="Valor da Venda" required />
+                <input type="text" id="valorReceber" placeholder="Valor a Receber" required />
+                <input type="text" id="comissao" placeholder="Comissão" required />
+                <span id="tipoComissaoInfo"></span>
+                <button type="submit">Registrar Venda</button>
+            </form>
+            <table id="tabelaVendas">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Vendedor</th>
+                        <th>Serviço</th>
+                        <th>Cliente</th>
+                        <th>Empresa Parceira</th>
+                        <th>Valor Venda</th>
+                        <th>Valor Receber</th>
+                        <th>Comissão</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div id="controlesPaginacaoVendas"></div>
+        </div>
+
+        <div id="relatorios" class="tab-content">
+            <form id="filtroRelatorio">
+                <input type="date" id="dataInicial" />
+                <input type="date" id="dataFinal" />
+                <select id="filtroVendedor"></select>
+                <select id="filtroColunas" multiple>
+                    <option value="data">Data da Venda</option>
+                    <option value="vendedor">Vendedor</option>
+                    <option value="servico">Serviço</option>
+                    <option value="nomeCliente">Cliente</option>
+                    <option value="empresaParceira">Empresa Parceira</option>
+                    <option value="comissao">Comissão</option>
+                    <option value="valorBrutoReceber">Valor Bruto a Receber</option>
+                </select>
+                <button type="button" onclick="filtrarRelatorio()">Gerar Relatório</button>
+            </form>
+            <table id="tabelaRelatorio">
+                <thead></thead>
+                <tbody></tbody>
+                <tfoot></tfoot>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
