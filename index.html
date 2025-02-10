@@ -6,162 +6,406 @@
     <title>Dashboard de Gestão de Vendas</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
     <div class="container">
-        <!-- Cabeçalho -->
         <div class="dashboard-header">
+            <div class="logo-container">
+                <img id="logo" src="logo.png" alt="Logotipo da Empresa" style="max-height: 40px;">
+                <input type="file" id="uploadLogo" accept="image/*" style="display: none;">
+                <button onclick="document.getElementById('uploadLogo').click()">Alterar Logotipo</button>
+            </div>
             <h1 class="dashboard-title">Dashboard de Gestão de Vendas</h1>
-            <button id="menuToggle" onclick="toggleMenu()">☰</button>
-            <nav class="navigation" id="mainNav">
+            <div class="navigation">
                 <button class="nav-button active" onclick="showTab('dashboard')">Dashboard</button>
                 <button class="nav-button" onclick="showTab('cadastros')">Cadastros</button>
                 <button class="nav-button" onclick="showTab('vendas')">Vendas</button>
                 <button class="nav-button" onclick="showTab('relatorios')">Relatórios</button>
-            </nav>
+                <button class="nav-button" onclick="toggleDarkMode()">Modo Escuro</button>
+            </div>
         </div>
 
-        <!-- Abas -->
+        <!-- Dashboard -->
         <div id="dashboard" class="tab-content active">
-            <div class="filters">
-                <select id="mesFiltro">
-                    <option value="">Selecione o mês</option>
-                    <option value="0">Janeiro</option>
-                    <option value="1">Fevereiro</option>
-                    <option value="2">Março</option>
-                    <option value="3">Abril</option>
-                    <option value="4">Maio</option>
-                    <option value="5">Junho</option>
-                    <option value="6">Julho</option>
-                    <option value="7">Agosto</option>
-                    <option value="8">Setembro</option>
-                    <option value="9">Outubro</option>
-                    <option value="10">Novembro</option>
-                    <option value="11">Dezembro</option>
-                </select>
-                <select id="anoFiltro"></select>
-                <button onclick="atualizarDashboard()">Atualizar</button>
-            </div>
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-title">Total de Vendas</span>
-                    <span class="stat-value" id="totalVendasDash">R$ 0,00</span>
+                    <span id="totalVendasDash" class="stat-value">R$ 0,00</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-title">Comissões</span>
-                    <span class="stat-value" id="totalComissoesDash">R$ 0,00</span>
+                    <span id="totalComissoesDash" class="stat-value">R$ 0,00</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-title">Clientes Atendidos</span>
-                    <span class="stat-value" id="totalClientes">0</span>
+                    <span id="totalClientes" class="stat-value">0</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-title">Ticket Médio</span>
-                    <span class="stat-value" id="ticketMedio">R$ 0,00</span>
+                    <span id="ticketMedio" class="stat-value">R$ 0,00</span>
                 </div>
             </div>
             <div class="grid">
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Tendências Sazonais</h3>
+    </div>
+    <div class="card-body">
+        <canvas id="tendenciasSazonaisChart"></canvas>
+    </div>
+</div>
                 <div class="card">
-                    <canvas id="vendasServicoChart"></canvas>
+                    <div class="card-header">
+                        <h3 class="card-title">Retenção de Clientes</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="retencaoClientesChart"></canvas>
+                    </div>
                 </div>
                 <div class="card">
-                    <canvas id="desempenhoVendedoresChart"></canvas>
+                    <div class="card-header">
+                        <h3 class="card-title">Rentabilidade por Serviço</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="rentabilidadeServicoChart"></canvas>
+                    </div>
                 </div>
                 <div class="card">
-                    <canvas id="vendasCategoriaChart"></canvas>
+                    <div class="card-header">
+                        <h3 class="card-title">Vendas por Serviço</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="vendasServicoChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Desempenho dos Vendedores</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="desempenhoVendedoresChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Vendas por Categoria de Serviço</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="vendasCategoriaChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Gamificação</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul id="rankingVendedores" class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Ranking de Vendedores
+                                <span class="badge bg-primary rounded-pill">Pontuação</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- Cadastros -->
         <div id="cadastros" class="tab-content">
-            <!-- Cadastro de Vendedor -->
-            <form id="vendedorForm" class="form-group">
-                <input type="text" id="nomeVendedor" placeholder="Nome do Vendedor" required />
-                <input type="email" id="emailVendedor" placeholder="Email" required />
-                <input type="tel" id="telefoneVendedor" placeholder="Telefone" oninput="formatarTelefone(this)" required />
-                <button type="submit">Cadastrar Vendedor</button>
-            </form>
-            <ul id="vendedoresList" class="list-group"></ul>
-
-            <!-- Cadastro de Serviço -->
-            <form id="servicoForm" class="form-group">
-                <input type="text" id="nomeServico" placeholder="Nome do Serviço" required />
-                <input type="text" id="categoriaServico" placeholder="Categoria" required />
-                <select id="tipoComissao">
-                    <option value="fixa">Fixa</option>
-                    <option value="porcentagem">Porcentagem</option>
-                </select>
-                <button type="submit">Cadastrar Serviço</button>
-            </form>
-            <ul id="servicosList" class="list-group"></ul>
-
-            <!-- Cadastro de Empresa Parceira -->
-            <form id="empresaForm" class="form-group">
-                <input type="text" id="nomeEmpresa" placeholder="Nome da Empresa" required />
-                <button type="submit">Cadastrar Empresa</button>
-            </form>
-            <ul id="empresasList" class="list-group"></ul>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Cadastro de Vendedor</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="vendedorForm">
+                            <div class="form-group">
+                                <label for="nomeVendedor" class="form-label">Nome do Vendedor</label>
+                                <input type="text" id="nomeVendedor" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="emailVendedor" class="form-label">Email</label>
+                                <input type="email" id="emailVendedor" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="telefoneVendedor" class="form-label">Telefone</label>
+                                <input type="text" id="telefoneVendedor" class="form-input" oninput="formatarTelefone(this)" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Cadastrar Vendedor</button>
+                        </form>
+                        <ul id="vendedoresList" class="list-group mt-4"></ul>
+                        <div id="controlesPaginacaoVendedores" class="pagination-controls mt-2"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Cadastro de Serviço</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="servicoForm">
+                            <div class="form-group">
+                                <label for="nomeServico" class="form-label">Nome do Serviço</label>
+                                <input type="text" id="nomeServico" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="categoriaServico" class="form-label">Categoria</label>
+                                <input type="text" id="categoriaServico" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="tipoComissao" class="form-label">Tipo de Comissão</label>
+                                <select id="tipoComissao" class="form-select">
+                                    <option value="fixa">Fixa</option>
+                                    <option value="porcentagem">Porcentagem</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Cadastrar Serviço</button>
+                        </form>
+                        <ul id="servicosList" class="list-group mt-4"></ul>
+                        <div id="controlesPaginacaoServicos" class="pagination-controls mt-2"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Cadastro de Empresa Parceira</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="empresaForm">
+                            <div class="form-group">
+                                <label for="nomeEmpresa" class="form-label">Nome da Empresa</label>
+                                <input type="text" id="nomeEmpresa" class="form-input" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Cadastrar Empresa</button>
+                        </form>
+                        <ul id="empresasList" class="list-group mt-4"></ul>
+                        <div id="controlesPaginacaoEmpresas" class="pagination-controls mt-2"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Definir Metas por Cliente</h3>
+<form id="metaForm">
+    <input type="text" id="nomeClienteMeta" placeholder="Nome do Cliente" required>
+    <input type="number" id="valorMeta" placeholder="Valor da Meta" required>
+    <button type="submit">Definir Meta</button>
+</form>
+<ul id="listaMetas"></ul>
+                    </div>
+                    <div class="card-body">
+                        <form id="metaClienteForm">
+                            <div class="form-group">
+                                <label for="nomeMetaCliente" class="form-label">Nome do Cliente</label>
+                                <input type="text" id="nomeMetaCliente" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="valorMeta" class="form-label">Valor da Meta</label>
+                                <input type="text" id="valorMeta" class="form-input" oninput="formatarMoeda(this)" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Definir Meta</button>
+                        </form>
+                        <ul id="metasClientesList" class="list-group mt-4"></ul>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <!-- Vendas -->
         <div id="vendas" class="tab-content">
-            <form id="vendaForm" class="form-group">
-                <select id="vendedorVenda"></select>
-                <select id="servicoVenda" onchange="atualizarTipoComissao()"></select>
-                <input type="date" id="dataVenda" required />
-                <input type="text" id="nomeCliente" placeholder="Nome do Cliente" required />
-                <select id="empresaParceira"></select>
-                <input type="text" id="valorVenda" placeholder="Valor da Venda" required />
-                <input type="text" id="valorReceber" placeholder="Valor a Receber" required />
-                <input type="text" id="comissao" placeholder="Comissão" required />
-                <span id="tipoComissaoInfo"></span>
-                <button type="submit">Registrar Venda</button>
-            </form>
-            <table id="tabelaVendas">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Vendedor</th>
-                        <th>Serviço</th>
-                        <th>Cliente</th>
-                        <th>Empresa Parceira</th>
-                        <th>Valor Venda</th>
-                        <th>Valor Receber</th>
-                        <th>Comissão</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <div id="controlesPaginacaoVendas"></div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Registrar Venda</h3>
+                </div>
+                <div class="card-body">
+                    <form id="vendaForm">
+                        <div class="form-group">
+                            <label for="vendedorVenda" class="form-label">Vendedor</label>
+                            <select id="vendedorVenda" class="form-select" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="servicoVenda" class="form-label">Serviço</label>
+                            <select id="servicoVenda" class="form-select" required onchange="atualizarTipoComissao()"></select>
+                            <small id="tipoComissaoInfo" class="form-text"></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="dataVenda" class="form-label">Data da Venda</label>
+                            <input type="date" id="dataVenda" class="form-input" required oninput="formatarDataInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="nomeCliente" class="form-label">Nome do Cliente</label>
+                            <input type="text" id="nomeCliente" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="empresaParceira" class="form-label">Empresa Parceira</label>
+                            <select id="empresaParceira" class="form-select" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="valorVenda" class="form-label">Valor da Venda</label>
+                            <input type="text" id="valorVenda" class="form-input" required oninput="formatarMoeda(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="valorReceber" class="form-label">Valor a Receber</label>
+                            <input type="text" id="valorReceber" class="form-input" required oninput="formatarMoeda(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="comissao" class="form-label">Comissão</label>
+                            <input type="text" id="comissao" class="form-input" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Registrar Venda</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Listagem de Vendas</h3>
+                </div>
+                <div class="card-body">
+                    <table id="tabelaVendas">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Vendedor</th>
+                                <th>Serviço</th>
+                                <th>Cliente</th>
+                                <th>Empresa Parceira</th>
+                                <th>Valor Venda</th>
+                                <th>Valor Receber</th>
+                                <th>Comissão</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot></tfoot>
+                    </table>
+                </div>
+            </div>
         </div>
 
+        <!-- Relatórios -->
         <div id="relatorios" class="tab-content">
-            <form id="filtroRelatorio">
-                <input type="date" id="dataInicial" />
-                <input type="date" id="dataFinal" />
-                <select id="filtroVendedor"></select>
-                <select id="filtroColunas" multiple>
-                    <option value="data">Data da Venda</option>
-                    <option value="vendedor">Vendedor</option>
-                    <option value="servico">Serviço</option>
-                    <option value="nomeCliente">Cliente</option>
-                    <option value="empresaParceira">Empresa Parceira</option>
-                    <option value="comissao">Comissão</option>
-                    <option value="valorBrutoReceber">Valor Bruto a Receber</option>
-                </select>
-                <button type="button" onclick="filtrarRelatorio()">Gerar Relatório</button>
-            </form>
-            <table id="tabelaRelatorio">
-                <thead></thead>
-                <tbody></tbody>
-                <tfoot></tfoot>
-            </table>
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Personalizar Tema</h3>
+    </div>
+    <div class="card-body">
+        <div class="form-group">
+            <label for="fonteSelecionada" class="form-label">Fonte</label>
+            <select id="fonteSelecionada" class="form-select">
+                <option value="Arial">Arial</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Times New Roman">Times New Roman</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="layoutSelecionado" class="form-label">Layout</label>
+            <select id="layoutSelecionado" class="form-select">
+                <option value="default">Padrão</option>
+                <option value="compacto">Compacto</option>
+                <option value="expandido">Expandido</option>
+            </select>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="aplicarPersonalizacao()">Aplicar Personalização</button>
+    </div>
+</div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Filtros de Relatório</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="dataInicial" class="form-label">Data Inicial</label>
+                        <input type="date" id="dataInicial" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataFinal" class="form-label">Data Final</label>
+                        <input type="date" id="dataFinal" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="filtroVendedor" class="form-label">Vendedor</label>
+                        <select id="filtroVendedor" class="form-select">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filtroColunas" class="form-label">Colunas</label>
+                        <select id="filtroColunas" class="form-select" multiple>
+                            <option value="data">Data da Venda</option>
+                            <option value="vendedor">Vendedor</option>
+                            <option value="servico">Serviço Vendido</option>
+                            <option value="tipoComissao">Tipo de Comissão</option>
+                            <option value="nomeCliente">Nome do Cliente</option>
+                            <option value="empresaParceira">Empresa Parceira</option>
+                            <option value="comissao">Valor da Comissão</option>
+                            <option value="percentualComissao">Percentual da Comissão</option>
+                            <option value="valorBrutoReceber">Valor Bruto a Receber</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="filtrarRelatorio()">Gerar Relatório</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Relatório de Vendas</h3>
+                </div>
+                <div class="card-body">
+                    <table id="tabelaRelatorio">
+                        <thead>
+                            <tr></tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot></tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Comparativo de Períodos</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="periodoInicial" class="form-label">Período Inicial</label>
+                        <input type="month" id="periodoInicial" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="periodoFinal" class="form-label">Período Final</label>
+                        <input type="month" id="periodoFinal" class="form-input">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="gerarComparativoPeriodos()">Gerar Comparativo</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Feedback de Clientes</h3>
+<form id="feedbackForm">
+    <input type="text" id="nomeClienteFeedback" placeholder="Nome do Cliente" required>
+    <textarea id="comentarioFeedback" placeholder="Comentário" required></textarea>
+    <select id="avaliacaoFeedback" required>
+        <option value="positiva">Positiva</option>
+        <option value="negativa">Negativa</option>
+    </select>
+    <button type="submit">Enviar Feedback</button>
+</form>
+<ul id="feedbackList"></ul>
+                </div>
+                <div class="card-body">
+                    <form id="feedbackForm">
+                        <div class="form-group">
+                            <label for="nomeFeedbackCliente" class="form-label">Nome do Cliente</label>
+                            <input type="text" id="nomeFeedbackCliente" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="comentarioFeedback" class="form-label">Comentário</label>
+                            <textarea id="comentarioFeedback" class="form-input" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Enviar Feedback</button>
+                    </form>
+                    <ul id="feedbacksList" class="list-group mt-4"></ul>
+                </div>
+            </div>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
