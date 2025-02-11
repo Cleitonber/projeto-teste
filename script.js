@@ -6,7 +6,8 @@ let dados = {
     vendedores: [],
     servicos: [],
     empresasParceiras: [],
-    feedbacks: []
+    feedbacks: [],
+    metas: []
 };
 
 // Variáveis de controle de paginação
@@ -17,7 +18,7 @@ let paginaAtualVendas = 1;
 const itensPorPagina = 5;
 
 // Gráficos globais
-let vendasServicoChart, desempenhoVendedoresChart, vendasCategoriaChart, tendenciasSazonaisChart;
+let vendasServicoChart, desempenhoVendedoresChart, vendasCategoriaChart, tendenciasSazonaisChart, rentabilidadeServicoChart;
 
 // Função para alternar entre as abas
 function showTab(tabId) {
@@ -528,6 +529,13 @@ function exportarRelatorioPDF() {
     doc.save('relatorio_vendas.pdf');
 }
 
+// Função para exportar relatório em Excel
+function exportarRelatorioExcel() {
+    const tabelaRelatorio = document.getElementById('tabelaRelatorio');
+    const wb = XLSX.utils.table_to_book(tabelaRelatorio, { sheet: "Relatório de Vendas" });
+    XLSX.writeFile(wb, 'relatorio_vendas.xlsx');
+}
+
 // Função para inicializar o gráfico de rentabilidade por serviço
 function inicializarRentabilidadeServicoChart() {
     const ctxRentabilidadeServico = document.getElementById('rentabilidadeServicoChart').getContext('2d');
@@ -629,45 +637,6 @@ function aplicarPersonalizacao() {
     alert('Personalização aplicada com sucesso!');
 }
 
-// Função para exportar relatório em PDF
-function exportarRelatorioPDF() {
-    const tabelaRelatorio = document.getElementById('tabelaRelatorio');
-    const { jsPDF } = window.jspdf;
-
-    // Criar um novo documento PDF
-    const doc = new jsPDF();
-
-    // Configurar o título
-    doc.setFontSize(18);
-    doc.text('Relatório de Vendas', 10, 10);
-
-    // Extrair dados da tabela
-    const rows = [];
-    tabelaRelatorio.querySelectorAll('tr').forEach(row => {
-        const rowData = [];
-        row.querySelectorAll('th, td').forEach(cell => {
-            rowData.push(cell.textContent);
-        });
-        rows.push(rowData);
-    });
-
-    // Adicionar tabela ao PDF
-    doc.autoTable({
-        head: [rows[0]], // Cabeçalho
-        body: rows.slice(1), // Corpo
-    });
-
-    // Salvar o PDF
-    doc.save('relatorio_vendas.pdf');
-}
-
-// Função para exportar relatório em Excel
-function exportarRelatorioExcel() {
-    const tabelaRelatorio = document.getElementById('tabelaRelatorio');
-    const wb = XLSX.utils.table_to_book(tabelaRelatorio, { sheet: "Relatório de Vendas" });
-    XLSX.writeFile(wb, 'relatorio_vendas.xlsx');
-}
-
 // Função para gerar gráfico de Tendências Sazonais
 function gerarTendenciasSazonais() {
     const vendasPorMes = Array(12).fill(0);
@@ -740,12 +709,12 @@ document.getElementById('feedbackForm').addEventListener('submit', function (e) 
     const comentario = document.getElementById('comentarioFeedback').value;
 
     const novoFeedback = {
-    id: dados.feedbacks.length + 1,
-    nomeCliente: nomeCliente,
-    comentario: comentario,
-    avaliacao: document.getElementById('avaliacaoFeedback').value, // Positiva/Negativa
-    data: new Date().toLocaleDateString('pt-BR')
-};
+        id: dados.feedbacks.length + 1,
+        nomeCliente: nomeCliente,
+        comentario: comentario,
+        avaliacao: document.getElementById('avaliacaoFeedback').value, // Positiva/Negativa
+        data: new Date().toLocaleDateString('pt-BR')
+    };
 
     dados.feedbacks.push(novoFeedback);
     salvarDados(); // Salva os dados no localStorage
@@ -805,28 +774,6 @@ function atualizarRankingVendedores() {
         rankingVendedores.appendChild(item);
     });
 }
-// Inicialização do aplicativo
-function inicializarAplicativo() {
-    carregarDadosIniciais();
-    carregarDados();
-    showTab('dashboard');
-    preencherAnos();
-    atualizarOpcoesVendedores();
-    atualizarOpcoesServicos();
-    atualizarOpcoesEmpresas();
-    inicializarGraficos();
-    inicializarTendenciasSazonais();
-    atualizarListaVendedores();
-    atualizarListaServicos();
-    atualizarListaEmpresas();
-    atualizarFiltroVendedores();
-    atualizarRankingVendedores();
-    listarFeedbacks();
-}
-
-// Event Listener para quando o DOM estiver carregado
-document.addEventListener('DOMContentLoaded', inicializarAplicativo);
-
 
 // Função para calcular a retenção de clientes
 function calcularRetencaoClientes() {
